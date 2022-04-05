@@ -7,17 +7,90 @@ import android.content.Intent;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
+
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
     public static final String INTENT_EXTRA = "com.example.opalconfig.INTENT_EXTRA";
-    String SERVER_URL = "http://192.168.137.1:3000/" ;
-    String SSID = "WiFi";
-    String PSK = "WifiPassword";
+    String SERVER_URL = "http://192.168.4.1/" ;
+    String SSID = "MatsyaAP";
+    String PSK = "MatsyaAP";
     WifiManager wifiManager;
-    Button turnOnWifiButton;
-    Button goToPageButton;
+    EditText usernameTextBox;
+    EditText passwordTextBox;
+    Button submitButton;
+
+    public void sendAPIRequest(Context context, String url, String method, String jsonExtra) throws JSONException {
+        RequestQueue queue = Volley.newRequestQueue(context);//create a new request queue
+
+        //StringRequest object takes 4 parameters, (1.Method (get or post), 2.the API server URL, 3.and a Response Listener, 4. error Listener)
+
+        if (method.toUpperCase() == "GET") {
+            StringRequest stringRequest = new StringRequest(
+                    Request.Method.GET,
+                    SERVER_URL + url,
+                    new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                            Log.i("VOLLEY", response);
+                        }
+                    },
+                    new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            Log.e("VOLLEY", error.toString());
+                        }
+
+                    });
+            queue.add(stringRequest);
+
+
+        } else {
+
+            StringRequest stringRequest = new StringRequest(
+                    Request.Method.POST,
+                    SERVER_URL + url,
+                    new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                            Log.i("VOLLEY", response);
+                        }
+                    },
+                    new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            Log.e("VOLLEY", error.toString());
+                        }
+
+                    }){
+                @Override
+                protected Map<String,String> getParams(){
+                    Map<String,String> params = new HashMap<String,String>();
+                    params.put("username", usernameTextBox.getText().toString());
+                    params.put("password", passwordTextBox.getText().toString());
+                    return params;
+                }
+            };
+            queue.add(stringRequest);
+        }
+
+
+    }
 
     private void connectToOpalHotspot(String networkSSID, String networkPassword,WifiManager wifi){
 
@@ -37,39 +110,35 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
 
     }
-    private void connectToWifi(){
-        connectToOpalHotspot(SSID,PSK, wifiManager);
-
-    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        turnOnWifiButton = findViewById(R.id.turnOnWifiButton);
-        goToPageButton = findViewById(R.id.loadPageButton);
+        usernameTextBox = findViewById(R.id.usernameTextBox);
+        passwordTextBox = findViewById(R.id.usernameTextBox);
+        submitButton = findViewById(R.id.submitButton);
+        submitButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    sendAPIRequest(MainActivity.this, "/plugins/cspot","post","" );
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    sendAPIRequest(MainActivity.this,"/plugins", "get", "");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        });
         wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        connectToOpalHotspot(SSID,PSK, wifiManager);
+        setURL(SERVER_URL);
 
 
-        turnOnWifiButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                connectToOpalHotspot(SSID,PSK, wifiManager);
 
-                if(wifiManager.isWifiEnabled() == true) {
-                    turnOnWifiButton.setText("on");
-                }
-                else{
-                    turnOnWifiButton.setText("off");
-                }
-
-            }
-        });
-        goToPageButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                setURL(SERVER_URL);
-            }
-        });
 
         //use WifiManager class to collect saved wifi credentials
 //        List<WifiConfiguration> savedNetworks = (List<WifiConfiguration>)wifiManager.getConfiguredNetworks();
