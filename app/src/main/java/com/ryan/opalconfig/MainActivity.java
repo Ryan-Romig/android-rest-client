@@ -4,7 +4,9 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.NetworkInfo;
 import android.net.wifi.WifiConfiguration;
+import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.util.Log;
@@ -27,7 +29,7 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
     public static final String INTENT_EXTRA = "com.example.opalconfig.INTENT_EXTRA";
-    String SERVER_URL = "http://192.168.4.1/" ;
+    String SERVER_URL = "http://192.168.4.1/plugins/" ;
     String SSID = "MatsyaAP";
     String PSK = "MatsyaAP";
     WifiManager wifiManager;
@@ -36,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
     Button submitButton;
 
     public void sendAPIRequest(Context context, String url, String method, String jsonExtra) throws JSONException {
-        RequestQueue queue = Volley.newRequestQueue(context);//create a new request queue
+        RequestQueue queue = Volley.newRequestQueue(context);//create a new request queue , then send the queue
 
         //StringRequest object takes 4 parameters, (1.Method (get or post), 2.the API server URL, 3.and a Response Listener, 4. error Listener)
 
@@ -99,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
         wifiConfiguration.preSharedKey = "\"" + networkPassword + "\"";
         int netID = wifiManager.addNetwork(wifiConfiguration);
         wifi.setWifiEnabled(true);
-        wifi.disconnect();
+//        wifi.disconnect();
         wifi.enableNetwork(netID, true);
         wifi.reconnect();
     }
@@ -110,6 +112,10 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
 
     }
+    private String getConnectedSSID(){
+        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+        return wifiInfo.getSSID();
+    };
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -120,22 +126,28 @@ public class MainActivity extends AppCompatActivity {
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+//                try {
+//                    sendAPIRequest(MainActivity.this, "/wifi/connect","post","" );
+//                } catch (JSONException e) {
+//                    e.printStackTrace();
+//                }
                 try {
-                    sendAPIRequest(MainActivity.this, "/plugins/cspot","post","" );
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    sendAPIRequest(MainActivity.this,"/plugins", "get", "");
+                    sendAPIRequest(MainActivity.this,"", "get", "");
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
             }
 
         });
+
         wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        connectToOpalHotspot(SSID,PSK, wifiManager);
-        setURL(SERVER_URL);
+        if(getConnectedSSID() == "MatsyaAP"){
+            setURL(SERVER_URL);
+        }
+        else {
+            connectToOpalHotspot(SSID,PSK,wifiManager);
+        }
+
 
 
 
