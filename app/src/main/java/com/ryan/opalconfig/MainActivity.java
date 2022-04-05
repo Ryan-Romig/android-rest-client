@@ -29,7 +29,7 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
     public static final String INTENT_EXTRA = "com.example.opalconfig.INTENT_EXTRA";
-    String SERVER_URL = "http://192.168.4.1/plugins/" ;
+    String SERVER_URL = "http://192.168.4.1" ;
     String SSID = "MatsyaAP";
     String PSK = "MatsyaAP";
     WifiManager wifiManager;
@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
     EditText passwordTextBox;
     Button submitButton;
 
-    public void sendAPIRequest(Context context, String url, String method, String jsonExtra) throws JSONException {
+    public void sendAPIRequest(Context context, String url, String method, String parameters) throws JSONException {
         RequestQueue queue = Volley.newRequestQueue(context);//create a new request queue , then send the queue
 
         //StringRequest object takes 4 parameters, (1.Method (get or post), 2.the API server URL, 3.and a Response Listener, 4. error Listener)
@@ -83,8 +83,11 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 protected Map<String,String> getParams(){
                     Map<String,String> params = new HashMap<String,String>();
-                    params.put("username", usernameTextBox.getText().toString());
-                    params.put("password", passwordTextBox.getText().toString());
+                    String usernameText = usernameTextBox.getText().toString();
+                    String passwordText = passwordTextBox.getText().toString();
+
+                    params.put("ssid", "UAWIFI");
+                    params.put("password", "5412318234");
                     return params;
                 }
             };
@@ -126,18 +129,18 @@ public class MainActivity extends AppCompatActivity {
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                try {
-//                    sendAPIRequest(MainActivity.this, "/wifi/connect","post","" );
-//                } catch (JSONException e) {
-//                    e.printStackTrace();
-//                }
                 try {
-                    sendAPIRequest(MainActivity.this,"", "get", "");
+                    sendAPIRequest(MainActivity.this, "/wifi/connect", "POST", "");
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-            }
+//                try {
+//                    sendAPIRequest(MainActivity.this,"/plugins", "GET","");
+//                } catch (JSONException e) {
+//                    e.printStackTrace();
+//                }
 
+            }
         });
 
         wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
