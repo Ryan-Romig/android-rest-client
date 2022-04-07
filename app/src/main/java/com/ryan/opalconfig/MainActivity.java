@@ -25,73 +25,54 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 
+// /sdcard/android/data/com.spotify.music/files/spotifycache/users
+// Here you’ll see all the usernames you've logged in with on this device.
+
+
 public class MainActivity extends AppCompatActivity {
+    //INTENT_EXTRA is for passing values to different activities
     public static final String INTENT_EXTRA = "com.example.opalconfig.INTENT_EXTRA";
-    String SERVER_URL = "http://192.168.4.1/" ;
+
+    //constants
+
+    String TEST_SERVER = "http://127.0.0.1:3001/";
+    String PLACEHOLDER_SERVER_URL = "https://jsonplaceholder.typicode.com/";
+    String OPAL_SERVER_URL = "http://192.168.4.1/";
+    String SERVER_URL = PLACEHOLDER_SERVER_URL;
+
     String SSID = "MatsyaAP";
     String PSK = "MatsyaAP";
+
+    //Classes
+    //--Custom classes
+    //manager class which will handle and store android user, and also tokens. will house all api methods
+
+    AuthenticationManager am = new AuthenticationManager();
+    //--Standard Classes
     WifiManager wifiManager;
+
+
+    //UI Elements -------------
+    //--input text boxes
     EditText usernameTextBox;
     EditText passwordTextBox;
+    //--buttons
     Button submitButton;
-
-    public void sendAPIRequest(Context context, String url, String method, String jsonExtra) throws JSONException {
-        RequestQueue queue = Volley.newRequestQueue(context);//create a new request queue
-
-        //StringRequest object takes 4 parameters, (1.Method (get or post), 2.the API server URL, 3.and a Response Listener, 4. error Listener)
-
-        if (method.toUpperCase() == "GET") {
-            StringRequest stringRequest = new StringRequest(
-                    Request.Method.GET,
-                    SERVER_URL + url,
-                    new Response.Listener<String>() {
-                        @Override
-                        public void onResponse(String response) {
-                            Log.i("VOLLEY", response);
-                        }
-                    },
-                    new Response.ErrorListener() {
-                        @Override
-                        public void onErrorResponse(VolleyError error) {
-                            Log.e("VOLLEY", error.toString());
-                        }
-
-                    });
-            queue.add(stringRequest);
-
-
-        } else {
-
-            StringRequest stringRequest = new StringRequest(
-                    Request.Method.POST,
-                    SERVER_URL + url,
-                    new Response.Listener<String>() {
-                        @Override
-                        public void onResponse(String response) {
-                            Log.i("VOLLEY", response);
-                        }
-                    },
-                    new Response.ErrorListener() {
-                        @Override
-                        public void onErrorResponse(VolleyError error) {
-                            Log.e("VOLLEY", error.toString());
-                        }
-
-                    }){
-                @Override
-                protected Map<String,String> getParams(){
-                    Map<String,String> params = new HashMap<String,String>();
-                    params.put("username", usernameTextBox.getText().toString());
-                    params.put("password", passwordTextBox.getText().toString());
-                    return params;
-                }
-            };
-            queue.add(stringRequest);
-        }
-
-
-    }
-
+//------functions
+    //use to set wifi
+    private void configureWifi(String ssid, String password){
+        //try parse to json to make sure its format correct before sending. not required, but extra check for donkey brained hacks like me
+        try {
+            JSONObject jsonObject = new JSONObject(String.format("{ssid:%1$s,password:%2$s}",ssid,password));
+            //send POST
+            am.sendPostRequest(MainActivity.this, SERVER_URL+"wifi/config", jsonObject.toString());
+            Log.i(am.TAG, jsonObject.toString());
+        } catch (JSONException e) {
+            e.printStackTrace();
+            Log.i(am.TAG,"FAIL");
+        }//endTryCatch
+    }//end configureWifi
+//used to auto connect to opal hotspot
     private void connectToOpalHotspot(String networkSSID, String networkPassword,WifiManager wifi){
 
         WifiConfiguration wifiConfiguration = new WifiConfiguration();
@@ -102,49 +83,36 @@ public class MainActivity extends AppCompatActivity {
         wifi.disconnect();
         wifi.enableNetwork(netID, true);
         wifi.reconnect();
-    }
+    }//end connectToOpalHotspot
 
+//goes to webview activity at the specified URL sent in the INTENT_EXTRA
     private void setURL(String url){
         Intent intent = new Intent(this, Webview.class);
         intent.putExtra(INTENT_EXTRA, url);
         startActivity(intent);
+    }//end setURL
 
-    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         setContentView(R.layout.activity_main);
+        //UI element assignments
+            //user input text boxes
         usernameTextBox = findViewById(R.id.usernameTextBox);
-        passwordTextBox = findViewById(R.id.usernameTextBox);
+        passwordTextBox = findViewById(R.id.passwordTextBox);
+            //buttons
         submitButton = findViewById(R.id.submitButton);
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                try {
-                    sendAPIRequest(MainActivity.this, "/plugins/cspot","post","" );
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    sendAPIRequest(MainActivity.this,"/plugins", "get", "");
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+                configureWifi(usernameTextBox.getText().toString(),passwordTextBox.getText().toString());
             }
-
         });
-        wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        connectToOpalHotspot(SSID,PSK, wifiManager);
-        setURL(SERVER_URL);
+//--------------execution-----------------------------------------//
+//        connectToOpalHotspot(SSID,PSK, wifiManager);
+//        setURL(SERVER_URL);
 
-
-
-
-        //use WifiManager class to collect saved wifi credentials
-//        List<WifiConfiguration> savedNetworks = (List<WifiConfiguration>)wifiManager.getConfiguredNetworks();
-//        Log.i("WIFI", savedNetworks.toString());
-
-        //send RESTful post request to the opal API to upload wifi creds
-
-    }
-}
+    }//end onCreate
+}//endClass
