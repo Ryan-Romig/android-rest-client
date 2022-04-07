@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
     String TEST_SERVER = "http://127.0.0.1:3001/";
     String PLACEHOLDER_SERVER_URL = "https://jsonplaceholder.typicode.com/";
     String OPAL_SERVER_URL = "http://192.168.4.1/";
-    String SERVER_URL = PLACEHOLDER_SERVER_URL;
+    String SERVER_URL = OPAL_SERVER_URL;
 
     String SSID = "MatsyaAP";
     String PSK = "MatsyaAP";
@@ -63,9 +63,11 @@ public class MainActivity extends AppCompatActivity {
     private void configureWifi(String ssid, String password){
         //try parse to json to make sure its format correct before sending. not required, but extra check for donkey brained hacks like me
         try {
-            JSONObject jsonObject = new JSONObject(String.format("{ssid:%1$s,password:%2$s}",ssid,password));
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("ssid",ssid);
+            jsonObject.put("password", password);
             //send POST
-            am.sendPostRequest(MainActivity.this, SERVER_URL+"wifi/config", jsonObject.toString());
+            am.sendPostRequest(MainActivity.this, SERVER_URL+"plugins/wifi", jsonObject.toString());
             Log.i(am.TAG, jsonObject.toString());
         } catch (JSONException e) {
             e.printStackTrace();
@@ -74,15 +76,23 @@ public class MainActivity extends AppCompatActivity {
     }//end configureWifi
 //used to auto connect to opal hotspot
     private void connectToOpalHotspot(String networkSSID, String networkPassword,WifiManager wifi){
-
         WifiConfiguration wifiConfiguration = new WifiConfiguration();
         wifiConfiguration.SSID = "\"" + networkSSID + "\"";
         wifiConfiguration.preSharedKey = "\"" + networkPassword + "\"";
-        int netID = wifiManager.addNetwork(wifiConfiguration);
-        wifi.setWifiEnabled(true);
-        wifi.disconnect();
+        int netID = wifi.addNetwork(wifiConfiguration);
         wifi.enableNetwork(netID, true);
-        wifi.reconnect();
+        //enable wifi if it's not on
+        if(!wifi.isWifiEnabled()){
+            wifi.setWifiEnabled(true);
+        }
+        //switch to MatsyaAP if its not already connected
+        if(wifiConfiguration.SSID != "MatysaAP"){
+//            wifi.disconnect();
+            wifi.enableNetwork(netID, true);
+            wifi.reconnect();
+            //lock connection for non-internet
+       wifi.createWifiLock("WifiConnection");
+        }
     }//end connectToOpalHotspot
 
 //goes to webview activity at the specified URL sent in the INTENT_EXTRA
@@ -107,12 +117,12 @@ public class MainActivity extends AppCompatActivity {
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+//                am.sendGetRequest(MainActivity.this,SERVER_URL + "plugins");
+
                 configureWifi(usernameTextBox.getText().toString(),passwordTextBox.getText().toString());
             }
         });
-//--------------execution-----------------------------------------//
-//        connectToOpalHotspot(SSID,PSK, wifiManager);
-//        setURL(SERVER_URL);
+
 
     }//end onCreate
 }//endClass
