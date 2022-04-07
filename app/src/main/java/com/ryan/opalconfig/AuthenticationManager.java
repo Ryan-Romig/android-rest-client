@@ -24,40 +24,19 @@ public class AuthenticationManager {
         StringRequest stringRequest = new StringRequest(
                 Request.Method.GET,
                 url,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        Log.i(TAG +"GET", response);
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.e(TAG, error.toString());
-                    }
-
-                });
+                response -> Log.i(TAG +"GET", response),
+                error -> Log.e(TAG, error.toString()));
         queue.add(stringRequest);
-    }
+    }//end getRequest
 
     public void sendPostRequest(Context context, String url, String jsonInput){
         RequestQueue queue = Volley.newRequestQueue(context);
         StringRequest stringRequest = new StringRequest(
                 Request.Method.POST,
                 url,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        Log.i(TAG + "POST", response);
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.e(TAG, error.toString());
-                    }
-
-                }){
+                response -> Log.i(TAG + "POST", response),
+                error -> Log.e(TAG, error.toString())){
+            //getParams is for sending parameters in POST request
             @Override
             protected Map<String,String> getParams(){
                 //Must return HashMap
@@ -81,10 +60,12 @@ public class AuthenticationManager {
                     }
                 }
                 return parameters;
-            }
-        };
+            }//end getParams
+        };//end stringRequest inline declaration?? idk words
+
+    //--------finally, send the POST request
         queue.add(stringRequest);
-    }
+    }//end postRequest
 
 
 
