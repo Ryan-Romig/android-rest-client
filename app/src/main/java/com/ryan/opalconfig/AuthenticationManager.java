@@ -27,7 +27,7 @@ public class AuthenticationManager {
                 response -> Log.i(TAG +"GET", response),
                 error -> Log.e(TAG, error.toString()));
         queue.add(stringRequest);
-    }//end getRequest
+    }//end sendGetRequest
 
     public void sendPostRequest(Context context, String url, String jsonInput){
         RequestQueue queue = Volley.newRequestQueue(context);
