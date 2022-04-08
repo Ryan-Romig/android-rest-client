@@ -11,19 +11,10 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
-import java.util.Map;
 
 // /sdcard/android/data/com.spotify.music/files/spotifycache/users
 // Here you’ll see all the usernames you've logged in with on this device.
@@ -35,18 +26,17 @@ public class MainActivity extends AppCompatActivity {
 
     //constants
 
-    String TEST_SERVER = "http://127.0.0.1:3001/";
+    String TEST_SERVER = "http://10.42.0.253/";
     String PLACEHOLDER_SERVER_URL = "https://jsonplaceholder.typicode.com/";
     String OPAL_SERVER_URL = "http://192.168.4.1/";
-    String SERVER_URL = PLACEHOLDER_SERVER_URL;
+    String SERVER_URL = OPAL_SERVER_URL;
 
     String SSID = "MatsyaAP";
     String PSK = "MatsyaAP";
 
     //Classes
     //--Custom classes
-    //manager class which will handle and store android user, and also tokens. will house all api methods
-
+    //manager class which will handle and store android user, and also tokens. will house all api methods (Maybe??)
     AuthenticationManager am = new AuthenticationManager();
     //--Standard Classes
     WifiManager wifiManager;
@@ -58,39 +48,76 @@ public class MainActivity extends AppCompatActivity {
     EditText passwordTextBox;
     //--buttons
     Button submitButton;
+    Button webViewButton;
 //------functions
     //use to set wifi
     private void configureWifi(String ssid, String password){
         //try parse to json to make sure its format correct before sending. not required, but extra check for donkey brained hacks like me
-        try {
-            JSONObject jsonObject = new JSONObject(String.format("{ssid:%1$s,password:%2$s}",ssid,password));
-            //send POST
-            am.sendPostRequest(MainActivity.this, SERVER_URL+"wifi/config", jsonObject.toString());
-            Log.i(am.TAG, jsonObject.toString());
-        } catch (JSONException e) {
-            e.printStackTrace();
-            Log.i(am.TAG,"FAIL");
-        }//endTryCatch
-    }//end configureWifi
-//used to auto connect to opal hotspot
-    private void connectToOpalHotspot(String networkSSID, String networkPassword,WifiManager wifi){
+            HashMap<String,String> jsonObject = new HashMap<String,String>();
+            jsonObject.put("ssid", ssid);
+        jsonObject.put("password",password);
 
+        //send POST
+            am.sendPostRequest(MainActivity.this, SERVER_URL+"", jsonObject);
+            Log.i(am.TAG, jsonObject.toString());
+
+    }//end configureWifi
+
+//-----
+private void goToServer () {
+    String ssid = "MatsyaAP";
+    String password = "MatsyaAP";
+    connectToWifi(ssid, password, wifiManager);
+    openURL(SERVER_URL);
+}
+
+
+
+    //used to auto connect to opal hotspot
+    private void connectToWifi(String networkSSID, String networkPassword,WifiManager wifi){
         WifiConfiguration wifiConfiguration = new WifiConfiguration();
         wifiConfiguration.SSID = "\"" + networkSSID + "\"";
         wifiConfiguration.preSharedKey = "\"" + networkPassword + "\"";
-        int netID = wifiManager.addNetwork(wifiConfiguration);
-        wifi.setWifiEnabled(true);
-        wifi.disconnect();
+        int netID = wifi.addNetwork(wifiConfiguration);
         wifi.enableNetwork(netID, true);
-        wifi.reconnect();
+        //enable wifi if it's not on
+        if(!wifi.isWifiEnabled()){
+            wifi.setWifiEnabled(true);
+        }
+        //switch to MatsyaAP if its not already connected
+        if(wifiConfiguration.SSID != networkSSID){
+//            wifi.disconnect();
+            wifi.enableNetwork(netID, true);
+            wifi.reconnect();
+            //lock connection for non-internet i think?
+       wifi.createWifiLock("WifiConnection");
+        }
     }//end connectToOpalHotspot
 
 //goes to webview activity at the specified URL sent in the INTENT_EXTRA
-    private void setURL(String url){
+    private void openURL(String url){
         Intent intent = new Intent(this, Webview.class);
         intent.putExtra(INTENT_EXTRA, url);
         startActivity(intent);
     }//end setURL
+
+    private void handleSubmitButton() throws JSONException, InterruptedException {
+        am.sendGetRequest(MainActivity.this,SERVER_URL + "plugins/wifi");
+        //(JSONObject.put alphabetical order?
+        String ssid = usernameTextBox.getText().toString();
+        String password = passwordTextBox.getText().toString();
+        HashMap<String,String> data = new HashMap<String,String>();
+        data.put("ssid", ssid);
+        data.put("password", password);
+
+
+        am.sendPostRequest(MainActivity.this, SERVER_URL+"plugins/wifi",data);
+//                configureWifi(usernameTextBox.getText().toString(),passwordTextBox.getText().toString());
+    };//end handleSubmit
+
+    private void handleWebViewButtonClick(){
+            goToServer();
+        }    //end handleButton
 
 
     @Override
@@ -107,12 +134,27 @@ public class MainActivity extends AppCompatActivity {
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                configureWifi(usernameTextBox.getText().toString(),passwordTextBox.getText().toString());
+                try {
+                    handleSubmitButton();
+                } catch (JSONException | InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
-        });
-//--------------execution-----------------------------------------//
-//        connectToOpalHotspot(SSID,PSK, wifiManager);
-//        setURL(SERVER_URL);
+        });//end onclickListener
+       webViewButton = findViewById(R.id.webViewButton);
+       webViewButton.setOnClickListener(new View.OnClickListener() {
+           @Override
+           public void onClick(View v) {
+               Thread t = new Thread(new Runnable() {
+                   @Override
+                   public void run() {
+                       handleWebViewButtonClick();
+                   }
+               });
+               t.start();
+           }
+       });
+
 
     }//end onCreate
 }//endClass
