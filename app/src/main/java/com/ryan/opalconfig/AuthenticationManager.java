@@ -1,6 +1,8 @@
 package com.ryan.opalconfig;
 
 import android.content.Context;
+import android.content.Intent;
+import android.net.ConnectivityManager;
 import android.util.Log;
 
 import com.android.volley.AuthFailureError;
@@ -9,6 +11,7 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
@@ -46,48 +49,75 @@ public class AuthenticationManager {
     }//end sendGetRequest
 
 
-    public void sendPostRequest(Context context, String url, HashMap<String,String> jsonInput){
-        RequestQueue queue = Volley.newRequestQueue(context);
-        StringRequest stringRequest = new StringRequest(
-                Request.Method.POST,
+    public void sendPostRequest(Context context, String url, JSONObject jsonInput) throws JSONException {
+               RequestQueue queue = Volley.newRequestQueue(context);
+
+
+        Log.d(TAG, jsonInput.toString());
+
+
+        JsonObjectRequest jsonObjReq = new JsonObjectRequest(Request.Method.POST,
                 url,
-                new Response.Listener<String>() {
+                jsonInput,
+                new Response.Listener() {
                     @Override
-                    public void onResponse(String response) {
-                        Log.i(TAG + " POST RESPONSE", response);
+                    public void onResponse(Object response) {
+
+                        Log.i(TAG, "POST RESPONSE "+ response.toString());
+
                     }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.e(TAG + " POST Response Error: ", error.toString());
-            }
-        }){
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
 
-            //getParams is for sending parameters in POST request
-            @Override
-            protected Map<String,String> getParams(){
-                //Must return HashMap
+                      Log.e(TAG, "POST RESPONSE ERROR "+ error.toString());
 
+                    }
+                });
 
-                return jsonInput;
-            }//end getParams
-            @Override
-            public Map<String, String> getHeaders() throws AuthFailureError {
-                Map<String,String> header = new HashMap<String, String>();
-                header.put("Accept","application/json");
-                header.put("Content-Type","application/json");
-                return header;
-            }
-        };//end stringRequest inline declaration?? idk words
-
-        //adjust timeout to prevent server timeout error
-        stringRequest.setRetryPolicy(new DefaultRetryPolicy(
+//        StringRequest stringRequest = new StringRequest(
+//                Request.Method.POST,
+//                url,
+//                new Response.Listener<String>() {
+//                    @Override
+//                    public void onResponse(String response) {
+//                        Log.i(TAG + " POST RESPONSE", response);
+//                    }
+//                }, new Response.ErrorListener() {
+//            @Override
+//            public void onErrorResponse(VolleyError error) {
+//                Log.e(TAG + " POST Response Error: ", error.toString());
+//            }
+//        }){
+//
+//            //getParams is for sending parameters in POST request
+//            @Override
+//            protected Map<String,String> getParams(){
+//                //Must return HashMap
+//                Log.d(TAG, "parameters triggered");
+//                Log.d(TAG, finalTempMap.toString());
+//                return finalTempMap;
+//            }//end getParams
+//            @Override
+//            public Map<String, String> getHeaders() throws AuthFailureError {
+//                Map<String,String> header = new HashMap<String, String>();
+//                header.put("Accept","application/json");
+//                header.put("Content-Type","application/json");
+//                Log.d(TAG, "header triggered");
+//                Log.d(TAG, header.toString());
+//                return header;
+//            }
+//        };//end stringRequest inline declaration?? idk words
+//
+//        //adjust timeout to prevent server timeout error
+        jsonObjReq.setRetryPolicy(new DefaultRetryPolicy(
                 10000,
                 DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-
-    //--------finally, send the POST request
-        queue.add(stringRequest);
+//
+//    //--------finally, send the POST request
+        queue.add(jsonObjReq);
     }//end postRequest
 
 

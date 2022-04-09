@@ -4,7 +4,10 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.wifi.WifiConfiguration;
+import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.util.Log;
@@ -45,30 +48,40 @@ public class MainActivity extends AppCompatActivity {
     //UI Elements -------------
     //--input text boxes
     EditText usernameTextBox;
+    EditText usernameValueTextBox;
     EditText passwordTextBox;
+    EditText passwordValueTextBox;
+    EditText urlTextBox;
     //--buttons
     Button submitButton;
     Button webViewButton;
 //------functions
-    //use to set wifi
-    private void configureWifi(String ssid, String password){
-        //try parse to json to make sure its format correct before sending. not required, but extra check for donkey brained hacks like me
-            HashMap<String,String> jsonObject = new HashMap<String,String>();
-            jsonObject.put("ssid", ssid);
-        jsonObject.put("password",password);
-
-        //send POST
-            am.sendPostRequest(MainActivity.this, SERVER_URL+"", jsonObject);
-            Log.i(am.TAG, jsonObject.toString());
-
-    }//end configureWifi
 
 //-----
 private void goToServer () {
     String ssid = "MatsyaAP";
     String password = "MatsyaAP";
     connectToWifi(ssid, password, wifiManager);
-    openURL(SERVER_URL);
+    Thread t = new Thread(){
+        @Override
+        public void run(){
+            while(!checkForWiFi()){
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            if(checkForWiFi()){
+                openURL(SERVER_URL);            }
+            else{
+
+            }
+
+        }
+    };
+    t.start();
+
 }
 
 
@@ -84,14 +97,14 @@ private void goToServer () {
         if(!wifi.isWifiEnabled()){
             wifi.setWifiEnabled(true);
         }
+
+
         //switch to MatsyaAP if its not already connected
-        if(wifiConfiguration.SSID != networkSSID){
-//            wifi.disconnect();
             wifi.enableNetwork(netID, true);
             wifi.reconnect();
             //lock connection for non-internet i think?
        wifi.createWifiLock("WifiConnection");
-        }
+
     }//end connectToOpalHotspot
 
 //goes to webview activity at the specified URL sent in the INTENT_EXTRA
@@ -102,23 +115,36 @@ private void goToServer () {
     }//end setURL
 
     private void handleSubmitButton() throws JSONException, InterruptedException {
-        am.sendGetRequest(MainActivity.this,SERVER_URL + "plugins/wifi");
+//        am.sendGetRequest(MainActivity.this,SERVER_URL + "plugins/wifi");
         //(JSONObject.put alphabetical order?
         String ssid = usernameTextBox.getText().toString();
+        String usernameKey = usernameTextBox.getText().toString();
         String password = passwordTextBox.getText().toString();
-        HashMap<String,String> data = new HashMap<String,String>();
-        data.put("ssid", ssid);
-        data.put("password", password);
-
-
-        am.sendPostRequest(MainActivity.this, SERVER_URL+"plugins/wifi",data);
-//                configureWifi(usernameTextBox.getText().toString(),passwordTextBox.getText().toString());
+        String passwordKey = passwordTextBox.getText().toString();
+        JSONObject data = new JSONObject();
+        data.put(usernameKey, ssid);
+        data.put(passwordKey, password);
+        am.sendPostRequest(MainActivity.this, SERVER_URL+urlTextBox.getText().toString(),data);
+        am.sendGetRequest(MainActivity.this,SERVER_URL+urlTextBox.getText().toString());
+        //                configureWifi(usernameTextBox.getText().toString(),passwordTextBox.getText().toString());
     };//end handleSubmit
 
     private void handleWebViewButtonClick(){
+
+
             goToServer();
         }    //end handleButton
 
+    private boolean checkForWiFi() {
+      ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+      NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+      if(networkInfo != null && networkInfo.isConnected() && networkInfo.getType() == ConnectivityManager.TYPE_WIFI){
+          return true;
+      }
+      else{
+      return false;
+      }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -129,6 +155,7 @@ private void goToServer () {
             //user input text boxes
         usernameTextBox = findViewById(R.id.usernameTextBox);
         passwordTextBox = findViewById(R.id.passwordTextBox);
+        urlTextBox  = findViewById(R.id.urlTextBox);
             //buttons
         submitButton = findViewById(R.id.submitButton);
         submitButton.setOnClickListener(new View.OnClickListener() {
