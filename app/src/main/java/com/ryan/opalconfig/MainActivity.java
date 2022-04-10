@@ -104,7 +104,8 @@ private void goToServer () throws InterruptedException {
             //if wifi return connected state, open webview to server page. if not HTTPS then it will open in chrome
             if (checkForWiFi()) {
                 Log.d("WIFI", getConnectedSSID());
-                if(getConnectedSSID() == SSID){
+                if(getConnectedSSID().equals("\"" + SSID + "\"")){
+                    Log.d("WIFI" , getConnectedSSID());
                     server_url = OPAL_SERVER_URL;
                 }
                 else
