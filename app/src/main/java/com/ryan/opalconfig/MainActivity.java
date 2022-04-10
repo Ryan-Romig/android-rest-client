@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
 
 //-----
 private void goToServer () {
-    connectToWifi("Swirogre", "NoPayNoUse66!", wifiManager);
+    connectToWifi(SSID, PSK, wifiManager);
     Thread t = new Thread(){
         @Override
         public void run(){
