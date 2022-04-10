@@ -1,15 +1,20 @@
 package com.ryan.opalconfig;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
+import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -33,12 +38,13 @@ public class MainActivity extends AppCompatActivity {
     String TEST_SERVER = "http://10.42.0.253/";
     String PLACEHOLDER_SERVER_URL = "https://jsonplaceholder.typicode.com/";
     String OPAL_SERVER_URL = "http://192.168.4.1/";
-    String SERVER_URL = PLACEHOLDER_SERVER_URL;
+    String server_url = TEST_SERVER;
 
     String SSID = "MatsyaAP";
     String PSK = "MatsyaAP";
 
     //Classes
+    boolean isScanning;
     //--Custom classes
     //manager class which will handle and store android user, and also tokens. will house all api methods (Maybe??)
     AuthenticationManager am = new AuthenticationManager();
@@ -49,6 +55,9 @@ public class MainActivity extends AppCompatActivity {
     //UI Elements -------------
     //text views
     TextView resultTextView;
+    //checked text views
+    CheckBox postCheckedTextView;
+    CheckBox getCheckBox;
     //--input text boxes
     EditText usernameTextBox;
     EditText usernameValueTextBox;
@@ -61,55 +70,118 @@ public class MainActivity extends AppCompatActivity {
 //------functions
 
 //-----
-private void goToServer () {
-    connectToWifi(SSID, PSK, wifiManager);
-    Thread t = new Thread(){
+    private String getConnectedSSID(){
+        wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        WifiInfo info = wifiManager.getConnectionInfo();
+        String ssid = info.getSSID();
+        Log.d("WIFI", "connected to " + ssid);
+        return ssid;
+    }
+
+
+private void goToServer () throws InterruptedException {
+    if (checkIfSSIDAvailable(SSID)) {
+        connectToWifi(SSID, PSK, wifiManager);
+    } else {
+//        wifiManager.setWifiEnabled(true);
+////        wifiManager.disconnect();
+////        wifiManager.reconnect();
+    }
+
+
+    //create new thread and change the define the run function
+    Thread t = new Thread() {
         @Override
-        public void run(){
-            while(!checkForWiFi()){
+        public void run() {
+            //checks for wifi, then waits 1 second.
+            while (!checkForWiFi()) {
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
-            if(checkForWiFi()){
-                openURL(SERVER_URL);            }
-            else{
+            //if wifi return connected state, open webview to server page. if not HTTPS then it will open in chrome
+            if (checkForWiFi()) {
+                Log.d("WIFI", getConnectedSSID());
+                if(getConnectedSSID() == SSID){
+                    server_url = OPAL_SERVER_URL;
+                }
+                else
+                {
+                    server_url = TEST_SERVER;
+                }
+                Log.d("WIFI", server_url);
+
+                openURL(server_url);
+
             }
         }
     };
+    //start the process of the thread
     t.start();
 }
 
+    private final BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context c, Intent intent) {
+            // This condition is not necessary if you listen to only one action
+            if (intent.getAction().equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)) {
+                isScanning = false;
+                // Do what you want
+            }
+        }
+    };
+
+
+
+
+
+
 //this doesn't work yet
-private boolean checkIfSSIDAvailable(String ssid) {
+private boolean checkIfSSIDAvailable(String ssid) throws InterruptedException {
+    isScanning = true;
+    IntentFilter intentFilter = new IntentFilter();
+    intentFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
+    registerReceiver(wifiScanReceiver, intentFilter);
     wifiManager.startScan();
+    while (isScanning) {
+        Thread.sleep(1500);
+    }
     List<ScanResult> results = wifiManager.getScanResults();
-    resultTextView.setText(results.toString());
-    for (int i = 0; i < results.size(); i++) {
-        if (results.get(i).SSID == ssid) {
+    for (ScanResult scans : results) {
+        Log.d("WIFI", scans.SSID);
+        if (scans.SSID.equals(SSID)) {
+            Log.d("WIFI", scans.SSID + "matches");
             return true;
         }
     }
+
     return false;
 }
 
-    //used to auto connect to opal hotspot
-    private void connectToWifi(String networkSSID, String networkPassword,WifiManager wifi){
+ //only adds network to devices saved network configuration
+    private int addNetworkToSavedNetworks(String ssid, String password, WifiManager wifi){
         WifiConfiguration wifiConfiguration = new WifiConfiguration();
-        wifiConfiguration.SSID = "\"" + networkSSID + "\"";
-        wifiConfiguration.preSharedKey = "\"" + networkPassword + "\"";
-        //get the network id as int and add to device wifi config
-        int netID = wifi.addNetwork(wifiConfiguration);
-        wifi.enableNetwork(netID, true);
+        //must go between quotes
+        wifiConfiguration.SSID = "\"" + ssid + "\"";
+        wifiConfiguration.preSharedKey = "\"" + password + "\"";
+//----get the network id as int and add to device wifi config
+        return wifi.addNetwork(wifiConfiguration);
+    }
+//connects handset to specified wifi
+    private void connectToWifi(String networkSSID, String networkPassword,WifiManager wifi){
+        wifi.enableNetwork(addNetworkToSavedNetworks(networkSSID,networkPassword,wifiManager), true);
+        Log.d("WIFI", "connecting to " + networkSSID);
         //enable wifi if it's not on
         if(!wifi.isWifiEnabled()) {
+            Log.d("WIFI", "wifi not turned on, turning on now");
             wifi.setWifiEnabled(true);
+            wifi.reconnect();
        }
        //lock connection for non-internet i think?
        wifi.createWifiLock("WifiConnection");
-    }//end connectToOpalHotspot
+    }//end connectToWifi
 
 //goes to webview activity at the specified URL sent in the INTENT_EXTRA
     private void openURL(String url){
@@ -119,13 +191,13 @@ private boolean checkIfSSIDAvailable(String ssid) {
     }//end setURL
 
     private void handleSubmitButton() throws JSONException, InterruptedException {
-//        am.sendGetRequest(MainActivity.this,SERVER_URL + "plugins/wifi");
-        //(JSONObject.put alphabetical order?
+    //order of put doesn't matter
         String ssid = usernameValueTextBox.getText().toString();
         String usernameKey = usernameTextBox.getText().toString();
         String password = passwordValueTextBox.getText().toString();
         String passwordKey = passwordTextBox.getText().toString();
         JSONObject data = new JSONObject();
+        //isEmpty check to prevent sending blank data. Used on key only so reset value is possible
         if(!usernameKey.isEmpty()){
             data.put(usernameKey, ssid);
         }
@@ -133,12 +205,18 @@ private boolean checkIfSSIDAvailable(String ssid) {
             data.put(passwordKey, password);
 
         }
-        am.sendGetRequest(MainActivity.this,SERVER_URL+urlTextBox.getText().toString(),resultTextView );
-        am.sendPostRequest(MainActivity.this, SERVER_URL+urlTextBox.getText().toString(),data, resultTextView);
+        if(postCheckedTextView.isChecked()){
+            am.sendPostRequest(MainActivity.this, server_url+urlTextBox.getText().toString(),data, resultTextView);
+
+        }
+        if(getCheckBox.isChecked()){
+            am.sendGetRequest(MainActivity.this,server_url+urlTextBox.getText().toString(),resultTextView );
+
+        }
 
     };//end handleSubmit
 
-    private void handleWebViewButtonClick(){
+    private void handleWebViewButtonClick() throws InterruptedException {
 
                 goToServer();
 
@@ -147,7 +225,7 @@ private boolean checkIfSSIDAvailable(String ssid) {
 
     private boolean checkForWiFi() {
       ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-      NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+      NetworkInfo networkInfo = connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
       if(networkInfo != null && networkInfo.isConnected() && networkInfo.getType() == ConnectivityManager.TYPE_WIFI){
           return true;
       }
@@ -164,6 +242,9 @@ private boolean checkIfSSIDAvailable(String ssid) {
         //UI element assignments
         //TextView Elements
         resultTextView = findViewById(R.id.resultTextView);
+        //checkedTextView
+        postCheckedTextView = findViewById(R.id.postCheckedTextView);
+        getCheckBox = findViewById(R.id.getCheckBox);
 
             //user input text boxes
         usernameTextBox = findViewById(R.id.usernameTextBox);
@@ -193,7 +274,11 @@ private boolean checkIfSSIDAvailable(String ssid) {
                Thread t = new Thread(new Runnable() {
                    @Override
                    public void run() {
-                       handleWebViewButtonClick();
+                       try {
+                           handleWebViewButtonClick();
+                       } catch (InterruptedException e) {
+                           e.printStackTrace();
+                       }
                    }
                });
                t.start();
