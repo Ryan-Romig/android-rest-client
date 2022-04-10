@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -16,6 +17,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.List;
 
 // /sdcard/android/data/com.spotify.music/files/spotifycache/users
 // Here you’ll see all the usernames you've logged in with on this device.
@@ -30,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
     String TEST_SERVER = "http://10.42.0.253/";
     String PLACEHOLDER_SERVER_URL = "https://jsonplaceholder.typicode.com/";
     String OPAL_SERVER_URL = "http://192.168.4.1/";
-    String SERVER_URL = TEST_SERVER;
+    String SERVER_URL = PLACEHOLDER_SERVER_URL;
 
     String SSID = "MatsyaAP";
     String PSK = "MatsyaAP";
@@ -59,9 +62,7 @@ public class MainActivity extends AppCompatActivity {
 
 //-----
 private void goToServer () {
-    String ssid = "MatsyaAP";
-    String password = "MatsyaAP";
-    connectToWifi(ssid, password, wifiManager);
+    connectToWifi("Swirogre", "NoPayNoUse66!", wifiManager);
     Thread t = new Thread(){
         @Override
         public void run(){
@@ -75,36 +76,39 @@ private void goToServer () {
             if(checkForWiFi()){
                 openURL(SERVER_URL);            }
             else{
-
             }
-
         }
     };
     t.start();
-
 }
 
-
+//this doesn't work yet
+private boolean checkIfSSIDAvailable(String ssid) {
+    wifiManager.startScan();
+    List<ScanResult> results = wifiManager.getScanResults();
+    resultTextView.setText(results.toString());
+    for (int i = 0; i < results.size(); i++) {
+        if (results.get(i).SSID == ssid) {
+            return true;
+        }
+    }
+    return false;
+}
 
     //used to auto connect to opal hotspot
     private void connectToWifi(String networkSSID, String networkPassword,WifiManager wifi){
         WifiConfiguration wifiConfiguration = new WifiConfiguration();
         wifiConfiguration.SSID = "\"" + networkSSID + "\"";
         wifiConfiguration.preSharedKey = "\"" + networkPassword + "\"";
+        //get the network id as int and add to device wifi config
         int netID = wifi.addNetwork(wifiConfiguration);
         wifi.enableNetwork(netID, true);
         //enable wifi if it's not on
-        if(!wifi.isWifiEnabled()){
+        if(!wifi.isWifiEnabled()) {
             wifi.setWifiEnabled(true);
-        }
-
-
-        //switch to MatsyaAP if its not already connected
-            wifi.enableNetwork(netID, true);
-            wifi.reconnect();
-            //lock connection for non-internet i think?
+       }
+       //lock connection for non-internet i think?
        wifi.createWifiLock("WifiConnection");
-
     }//end connectToOpalHotspot
 
 //goes to webview activity at the specified URL sent in the INTENT_EXTRA
@@ -136,8 +140,9 @@ private void goToServer () {
 
     private void handleWebViewButtonClick(){
 
+                goToServer();
 
-            goToServer();
+
         }    //end handleButton
 
     private boolean checkForWiFi() {

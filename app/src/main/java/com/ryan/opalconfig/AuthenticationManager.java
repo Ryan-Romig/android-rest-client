@@ -61,9 +61,6 @@ public class AuthenticationManager {
                     public void onResponse(Object response) {
                         Log.i(TAG, "POST RESPONSE "+ response.toString());
                         textView.setText(response.toString());
-
-
-
                     }
                 },
                 new Response.ErrorListener() {
@@ -72,59 +69,24 @@ public class AuthenticationManager {
 
                       Log.e(TAG, "POST RESPONSE ERROR "+ error.toString());
                         textView.setText(error.toString());
-
-
                     }
                 });
-
-//        StringRequest stringRequest = new StringRequest(
-//                Request.Method.POST,
-//                url,
-//                new Response.Listener<String>() {
-//                    @Override
-//                    public void onResponse(String response) {
-//                        Log.i(TAG + " POST RESPONSE", response);
-//                    }
-//                }, new Response.ErrorListener() {
-//            @Override
-//            public void onErrorResponse(VolleyError error) {
-//                Log.e(TAG + " POST Response Error: ", error.toString());
-//            }
-//        }){
-//
-//            //getParams is for sending parameters in POST request
-//            @Override
-//            protected Map<String,String> getParams(){
-//                //Must return HashMap
-//                Log.d(TAG, "parameters triggered");
-//                Log.d(TAG, finalTempMap.toString());
-//                return finalTempMap;
-//            }//end getParams
-//            @Override
-//            public Map<String, String> getHeaders() throws AuthFailureError {
-//                Map<String,String> header = new HashMap<String, String>();
-//                header.put("Accept","application/json");
-//                header.put("Content-Type","application/json");
-//                Log.d(TAG, "header triggered");
-//                Log.d(TAG, header.toString());
-//                return header;
-//            }
-//        };//end stringRequest inline declaration?? idk words
-//
 //        //adjust timeout to prevent server timeout error
         jsonObjReq.setRetryPolicy(new DefaultRetryPolicy(
                 10000,
                 DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-//
-//    //--------finally, send the POST request
+
+    //--------finally, send the POST request
+
         queue.add(jsonObjReq);
+
     }//end postRequest
 
 
 
 
     AuthenticationManager (){
-
     }//end constructor
+
 }//end class
