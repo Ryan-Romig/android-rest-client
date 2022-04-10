@@ -1,11 +1,9 @@
 package com.ryan.opalconfig;
 
 import android.content.Context;
-import android.content.Intent;
-import android.net.ConnectivityManager;
 import android.util.Log;
+import android.widget.TextView;
 
-import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -18,16 +16,11 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-
 public class AuthenticationManager {
 
 
     String TAG = "Authentication Manager";
-    public void sendGetRequest(Context context, String url){
+    public void sendGetRequest(Context context, String url, TextView textView){
         RequestQueue queue = Volley.newRequestQueue(context);
         StringRequest stringRequest = new StringRequest(
                 Request.Method.GET,
@@ -36,20 +29,24 @@ public class AuthenticationManager {
                     @Override
                     public void onResponse(String response) {
                         Log.i(TAG + "GET RESPONSE", response);
+
+                        textView.setText(response);
+
                     }
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 Log.e(TAG + " GET ERROR", error.toString());
+                textView.setText(error.toString());
+
             }
         });
-
-
+       //.add() sends the request
         queue.add(stringRequest);
     }//end sendGetRequest
 
 
-    public void sendPostRequest(Context context, String url, JSONObject jsonInput) throws JSONException {
+    public void sendPostRequest(Context context, String url, JSONObject jsonInput, TextView textView) throws JSONException {
                RequestQueue queue = Volley.newRequestQueue(context);
 
 
@@ -62,8 +59,10 @@ public class AuthenticationManager {
                 new Response.Listener() {
                     @Override
                     public void onResponse(Object response) {
-
                         Log.i(TAG, "POST RESPONSE "+ response.toString());
+                        textView.setText(response.toString());
+
+
 
                     }
                 },
@@ -72,6 +71,8 @@ public class AuthenticationManager {
                     public void onErrorResponse(VolleyError error) {
 
                       Log.e(TAG, "POST RESPONSE ERROR "+ error.toString());
+                        textView.setText(error.toString());
+
 
                     }
                 });

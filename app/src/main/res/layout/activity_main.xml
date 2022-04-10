@@ -7,6 +7,32 @@
     tools:context=".MainActivity">
 
     <EditText
+        android:id="@+id/urlTextBox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="textPersonName"
+        app:layout_constraintBottom_toTopOf="@+id/submitButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.442"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.296" />
+
+    <Button
+        android:id="@+id/webViewButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:text="Server"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toEndOf="@+id/urlTextBox"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.213" />
+
+    <EditText
         android:id="@+id/usernameTextBox"
         android:layout_width="149dp"
         android:layout_height="51dp"
@@ -15,24 +41,50 @@
         android:inputType="textPersonName"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.166"
+        app:layout_constraintHorizontal_bias="0.172"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.482" />
+        app:layout_constraintVertical_bias="0.348" />
+
+    <EditText
+        android:id="@+id/passwordValueTextbox"
+        android:layout_width="150dp"
+        android:layout_height="47dp"
+        android:layout_marginBottom="296dp"
+        android:ems="10"
+        android:inputType="textPassword"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.35"
+        app:layout_constraintStart_toEndOf="@+id/passwordTextBox"
+        app:layout_constraintTop_toBottomOf="@+id/usernameValueTextbox"
+        app:layout_constraintVertical_bias="0.106" />
 
     <EditText
         android:id="@+id/passwordTextBox"
         android:layout_width="147dp"
         android:layout_height="45dp"
-        android:layout_marginBottom="298dp"
+        android:ems="10"
+        android:inputType="textPassword"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.181"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/usernameTextBox"
+        app:layout_constraintVertical_bias="0.025" />
+
+    <EditText
+        android:id="@+id/usernameValueTextbox"
+        android:layout_width="153dp"
+        android:layout_height="48dp"
         android:ems="10"
         android:inputType="textPersonName"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.175"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/usernameTextBox"
-        app:layout_constraintVertical_bias="1.0" />
+        app:layout_constraintHorizontal_bias="0.285"
+        app:layout_constraintStart_toEndOf="@+id/usernameTextBox"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.346" />
 
     <Button
         android:id="@+id/submitButton"
@@ -42,59 +94,16 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/passwordTextBox" />
+        app:layout_constraintTop_toBottomOf="@+id/passwordTextBox"
+        app:layout_constraintVertical_bias="0.126" />
 
-    <Button
-        android:id="@+id/webViewButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="297dp"
-        android:layout_marginEnd="23dp"
-        android:text="Server"
+    <TextView
+        android:id="@+id/resultTextView"
+        android:layout_width="311dp"
+        android:layout_height="208dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.111" />
-
-    <EditText
-        android:id="@+id/urlTextBox"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="114dp"
-        android:layout_marginTop="15dp"
-        android:layout_marginEnd="87dp"
-        android:layout_marginBottom="159dp"
-        android:ems="10"
-        android:inputType="textPersonName"
-        app:layout_constraintBottom_toTopOf="@+id/usernameTextBox"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/webViewButton" />
-
-    <EditText
-        android:id="@+id/usernameValueTextbox"
-        android:layout_width="153dp"
-        android:layout_height="48dp"
-        android:layout_marginStart="32dp"
-        android:ems="10"
-        android:inputType="textPersonName"
-        app:layout_constraintStart_toEndOf="@+id/usernameTextBox"
-        tools:layout_editor_absoluteY="323dp" />
-
-    <EditText
-        android:id="@+id/passwordValueTextbox"
-        android:layout_width="150dp"
-        android:layout_height="47dp"
-        android:layout_marginEnd="2dp"
-        android:layout_marginBottom="76dp"
-        android:ems="10"
-        android:inputType="textPersonName"
-        app:layout_constraintBottom_toTopOf="@+id/submitButton"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/passwordTextBox"
-        app:layout_constraintTop_toBottomOf="@+id/usernameValueTextbox"
-        app:layout_constraintVertical_bias="0.281" />
+        app:layout_constraintTop_toBottomOf="@+id/submitButton" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

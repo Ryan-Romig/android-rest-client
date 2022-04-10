@@ -1,23 +1,21 @@
 package com.ryan.opalconfig;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiConfiguration;
-import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
+
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.HashMap;
 
 // /sdcard/android/data/com.spotify.music/files/spotifycache/users
 // Here you’ll see all the usernames you've logged in with on this device.
@@ -32,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
     String TEST_SERVER = "http://10.42.0.253/";
     String PLACEHOLDER_SERVER_URL = "https://jsonplaceholder.typicode.com/";
     String OPAL_SERVER_URL = "http://192.168.4.1/";
-    String SERVER_URL = OPAL_SERVER_URL;
+    String SERVER_URL = TEST_SERVER;
 
     String SSID = "MatsyaAP";
     String PSK = "MatsyaAP";
@@ -46,6 +44,8 @@ public class MainActivity extends AppCompatActivity {
 
 
     //UI Elements -------------
+    //text views
+    TextView resultTextView;
     //--input text boxes
     EditText usernameTextBox;
     EditText usernameValueTextBox;
@@ -117,16 +117,21 @@ private void goToServer () {
     private void handleSubmitButton() throws JSONException, InterruptedException {
 //        am.sendGetRequest(MainActivity.this,SERVER_URL + "plugins/wifi");
         //(JSONObject.put alphabetical order?
-        String ssid = usernameTextBox.getText().toString();
+        String ssid = usernameValueTextBox.getText().toString();
         String usernameKey = usernameTextBox.getText().toString();
-        String password = passwordTextBox.getText().toString();
+        String password = passwordValueTextBox.getText().toString();
         String passwordKey = passwordTextBox.getText().toString();
         JSONObject data = new JSONObject();
-        data.put(usernameKey, ssid);
-        data.put(passwordKey, password);
-        am.sendPostRequest(MainActivity.this, SERVER_URL+urlTextBox.getText().toString(),data);
-        am.sendGetRequest(MainActivity.this,SERVER_URL+urlTextBox.getText().toString());
-        //                configureWifi(usernameTextBox.getText().toString(),passwordTextBox.getText().toString());
+        if(!usernameKey.isEmpty()){
+            data.put(usernameKey, ssid);
+        }
+        if(!passwordKey.isEmpty() ){
+            data.put(passwordKey, password);
+
+        }
+        am.sendGetRequest(MainActivity.this,SERVER_URL+urlTextBox.getText().toString(),resultTextView );
+        am.sendPostRequest(MainActivity.this, SERVER_URL+urlTextBox.getText().toString(),data, resultTextView);
+
     };//end handleSubmit
 
     private void handleWebViewButtonClick(){
@@ -152,21 +157,29 @@ private void goToServer () {
         wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         setContentView(R.layout.activity_main);
         //UI element assignments
+        //TextView Elements
+        resultTextView = findViewById(R.id.resultTextView);
+
             //user input text boxes
         usernameTextBox = findViewById(R.id.usernameTextBox);
+        usernameValueTextBox = findViewById(R.id.usernameValueTextbox);
         passwordTextBox = findViewById(R.id.passwordTextBox);
+        passwordValueTextBox = findViewById(R.id.passwordValueTextbox);
         urlTextBox  = findViewById(R.id.urlTextBox);
             //buttons
         submitButton = findViewById(R.id.submitButton);
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 try {
                     handleSubmitButton();
                 } catch (JSONException | InterruptedException e) {
                     e.printStackTrace();
                 }
             }
+
+
         });//end onclickListener
        webViewButton = findViewById(R.id.webViewButton);
        webViewButton.setOnClickListener(new View.OnClickListener() {
