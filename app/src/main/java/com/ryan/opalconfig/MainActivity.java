@@ -67,6 +67,8 @@ public class MainActivity extends AppCompatActivity {
     //--buttons
     Button submitButton;
     Button webViewButton;
+    Button rebootButton;
+
 //------functions
 
 //-----
@@ -265,8 +267,6 @@ private boolean checkIfSSIDAvailable(String ssid) throws InterruptedException {
                     e.printStackTrace();
                 }
             }
-
-
         });//end onclickListener
        webViewButton = findViewById(R.id.webViewButton);
        webViewButton.setOnClickListener(new View.OnClickListener() {
@@ -285,7 +285,27 @@ private boolean checkIfSSIDAvailable(String ssid) throws InterruptedException {
                t.start();
            }
        });
-
-
+        rebootButton = findViewById(R.id.rebootButton);
+        rebootButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                JSONObject data = new JSONObject();
+                try {
+                    data.put("ssid","");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    data.put("password", "");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    am.sendPostRequest(MainActivity.this, server_url+"wifi/connect",data, resultTextView);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }//end onCreate
 }//endClass
