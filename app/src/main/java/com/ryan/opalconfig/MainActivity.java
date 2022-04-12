@@ -18,10 +18,13 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import java.util.List;
 
 //-------------------NOTES----------------------------------------//
@@ -103,16 +106,14 @@ public class MainActivity extends AppCompatActivity {
             }
             //if wifi return connected state, open webview to server page. if not HTTPS then it will open in chrome
             if (checkForWiFi()) {
-                Log.d("WIFI", getConnectedSSID());
+                server_url = getConnectedSSID().equals(SSID) ? OPAL_SERVER_URL : "";
                 if(getConnectedSSID().equals("\"" + SSID + "\"")){
-                    Log.d("WIFI" , getConnectedSSID());
                     server_url = OPAL_SERVER_URL;
                 }
                 else
                 {
-
+                    server_url = "";
                 }
-                Log.d("WIFI", server_url);
 //                openURL(server_url);
                 }
         }
@@ -163,8 +164,7 @@ private List<WifiConfiguration> getSavedWifiConfigurations(){
 }
 private void importSavedConfiguration(List<WifiConfiguration> configToImport){
     for (WifiConfiguration wifiConfig : configToImport) {
-        Log.i("WIFI","Adding" + wifiConfig.SSID);
-        Log.i("WIFI", "Adding" + wifiConfig.preSharedKey);
+
 //         wifiManager.addNetwork(wifiConfig);
     }
 }
@@ -223,8 +223,8 @@ private void resetTextBox(EditText textBox){
     };//end handleSubmit
 
     private void handleWebViewButtonClick() throws InterruptedException {
-        Log.i("WIFI",getSavedWifiConfigurations().toString());
-               importSavedConfiguration(getSavedWifiConfigurations());
+//               importSavedConfiguration(getSavedWifiConfigurations());
+               goToServer();
         }    //end handleButton
 
     private boolean checkForWiFi() {
@@ -318,7 +318,7 @@ private void resetTextBox(EditText textBox){
        webViewButton.setOnClickListener(new View.OnClickListener() {
            @Override
            public void onClick(View v) {
-               Thread t = new Thread(new Runnable() {
+               Thread t = new Thread() {
                    @Override
                    public void run() {
                        try {
@@ -327,7 +327,7 @@ private void resetTextBox(EditText textBox){
                            e.printStackTrace();
                        }
                    }
-               });
+               };
                t.start();
            }
        });
