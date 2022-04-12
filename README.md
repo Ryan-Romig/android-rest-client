@@ -20,3 +20,8 @@ get and post functions are encapsulated into a AuthenticationManager class (need
 
 to add -- 
 ##--android AccountManager to create user profile and store in device for 'profile' switching between different accounts/storing login credentials 
+
+
+
+use FING ios/android app to get IP address of devices on network 
+[Android](https://play.google.com/store/apps/details?id=com.overlook.android.fing) [iOS](https://apps.apple.com/us/app/fing-network-scanner/id430921107)
