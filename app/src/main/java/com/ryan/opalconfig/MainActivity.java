@@ -1,5 +1,6 @@
 package com.ryan.opalconfig;
 
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -17,34 +18,33 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
-
 import androidx.appcompat.app.AppCompatActivity;
-
+import androidx.core.app.ActivityCompat;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.util.List;
 
+//-------------------NOTES----------------------------------------//
 // /sdcard/android/data/com.spotify.music/files/spotifycache/users
 // Here you’ll see all the usernames you've logged in with on this device.
 
 
 public class MainActivity extends AppCompatActivity {
-    //INTENT_EXTRA is for passing values to different activities
+    //INTENT_EXTRA is for passing URL value to Webview Activity
     public static final String INTENT_EXTRA = "com.example.opalconfig.INTENT_EXTRA";
 
     //constants
-
     String TEST_SERVER = "http://10.42.0.253/";
     String PLACEHOLDER_SERVER_URL = "https://jsonplaceholder.typicode.com/";
     String OPAL_SERVER_URL = "http://192.168.4.1/";
-    String server_url = TEST_SERVER;
+    String server_url = "";
 
     String SSID = "MatsyaAP";
     String PSK = "MatsyaAP";
-
-    //Classes
+    //variables
     boolean isScanning;
+    JSONObject parameterAsJSON;
+
     //--Custom classes
     //manager class which will handle and store android user, and also tokens. will house all api methods (Maybe??)
     AuthenticationManager am = new AuthenticationManager();
@@ -55,23 +55,24 @@ public class MainActivity extends AppCompatActivity {
     //UI Elements -------------
     //text views
     TextView resultTextView;
+    TextView parametersTextView;
     //checked text views
     CheckBox postCheckedTextView;
     CheckBox getCheckBox;
     //--input text boxes
-    EditText usernameTextBox;
-    EditText usernameValueTextBox;
-    EditText passwordTextBox;
-    EditText passwordValueTextBox;
+    EditText keyTextBox;
+    EditText valueTextBox;
     EditText urlTextBox;
     //--buttons
     Button submitButton;
     Button webViewButton;
     Button rebootButton;
+    Button addParameterButton;
 
-//------functions
 
-//-----
+//------------------------------------functions-----------------------------------//
+
+
     private String getConnectedSSID(){
         wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         WifiInfo info = wifiManager.getConnectionInfo();
@@ -80,17 +81,14 @@ public class MainActivity extends AppCompatActivity {
         return ssid;
     }
 
-
-private void goToServer () throws InterruptedException {
-    if (checkIfSSIDAvailable(SSID)) {
-        connectToWifi(SSID, PSK, wifiManager);
-    } else {
-//        wifiManager.setWifiEnabled(true);
-////        wifiManager.disconnect();
-////        wifiManager.reconnect();
-    }
-
-
+    private void goToServer () throws InterruptedException {
+        if (checkIfSSIDAvailable(SSID)) {
+            connectToWifi(SSID, PSK, wifiManager);
+        } else {
+    //        wifiManager.setWifiEnabled(true);
+    ////        wifiManager.disconnect();
+    ////        wifiManager.reconnect();
+        }
     //create new thread and change the define the run function
     Thread t = new Thread() {
         @Override
@@ -112,19 +110,17 @@ private void goToServer () throws InterruptedException {
                 }
                 else
                 {
-                    server_url = TEST_SERVER;
+
                 }
                 Log.d("WIFI", server_url);
-
-                openURL(server_url);
-
-            }
+//                openURL(server_url);
+                }
         }
     };
     //start the process of the thread
     t.start();
 }
-
+//receiver for the WifiScan
     private final BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context c, Intent intent) {
@@ -134,7 +130,7 @@ private void goToServer () throws InterruptedException {
                 // Do what you want
             }
         }
-    };
+    };//end goToServer()
 
 
 
@@ -162,25 +158,34 @@ private boolean checkIfSSIDAvailable(String ssid) throws InterruptedException {
 
     return false;
 }
-
+private List<WifiConfiguration> getSavedWifiConfigurations(){
+    return wifiManager.getConfiguredNetworks();
+}
+private void importSavedConfiguration(List<WifiConfiguration> configToImport){
+    for (WifiConfiguration wifiConfig : configToImport) {
+        Log.i("WIFI","Adding" + wifiConfig.SSID);
+        Log.i("WIFI", "Adding" + wifiConfig.preSharedKey);
+//         wifiManager.addNetwork(wifiConfig);
+    }
+}
  //only adds network to devices saved network configuration
-    private int addNetworkToSavedNetworks(String ssid, String password, WifiManager wifi){
+    private int addNetworkToSavedNetworks(String ssid, String password){
         WifiConfiguration wifiConfiguration = new WifiConfiguration();
         //must go between quotes
         wifiConfiguration.SSID = "\"" + ssid + "\"";
         wifiConfiguration.preSharedKey = "\"" + password + "\"";
 //----get the network id as int and add to device wifi config
-        return wifi.addNetwork(wifiConfiguration);
+        return wifiManager.addNetwork(wifiConfiguration);
     }
 //connects handset to specified wifi
     private void connectToWifi(String networkSSID, String networkPassword,WifiManager wifi){
-        wifi.enableNetwork(addNetworkToSavedNetworks(networkSSID,networkPassword,wifiManager), true);
+        wifiManager.enableNetwork(addNetworkToSavedNetworks(networkSSID,networkPassword), true);
         Log.d("WIFI", "connecting to " + networkSSID);
         //enable wifi if it's not on
         if(!wifi.isWifiEnabled()) {
             Log.d("WIFI", "wifi not turned on, turning on now");
-            wifi.setWifiEnabled(true);
-            wifi.reconnect();
+            wifiManager.setWifiEnabled(true);
+            wifiManager.reconnect();
        }
        //lock connection for non-internet i think?
        wifi.createWifiLock("WifiConnection");
@@ -192,38 +197,34 @@ private boolean checkIfSSIDAvailable(String ssid) throws InterruptedException {
         intent.putExtra(INTENT_EXTRA, url);
         startActivity(intent);
     }//end setURL
-
+private void resetTextBox(EditText textBox){
+    textBox.setText("");
+}
+    private void addToJSON(String inputKey, String inputValue, JSONObject json) throws JSONException {
+        String key = inputKey;
+        String value = inputValue;
+        if(!key.isEmpty()) {
+            json.put(key, value);
+        }
+        parametersTextView.setText(json.toString());
+    }
     private void handleSubmitButton() throws JSONException, InterruptedException {
     //order of put doesn't matter
-        String ssid = usernameValueTextBox.getText().toString();
-        String usernameKey = usernameTextBox.getText().toString();
-        String password = passwordValueTextBox.getText().toString();
-        String passwordKey = passwordTextBox.getText().toString();
-        JSONObject data = new JSONObject();
+
         //isEmpty check to prevent sending blank data. Used on key only so reset value is possible
-        if(!usernameKey.isEmpty()){
-            data.put(usernameKey, ssid);
-        }
-        if(!passwordKey.isEmpty() ){
-            data.put(passwordKey, password);
-
-        }
         if(postCheckedTextView.isChecked()){
-            am.sendPostRequest(MainActivity.this, server_url+urlTextBox.getText().toString(),data, resultTextView);
-
+            am.sendPostRequest(MainActivity.this, server_url+urlTextBox.getText().toString(),parameterAsJSON, resultTextView);
         }
         if(getCheckBox.isChecked()){
             am.sendGetRequest(MainActivity.this,server_url+urlTextBox.getText().toString(),resultTextView );
-
         }
-
+        //reset parameter object after sending -- NOTE this will reset even on failure
+        parameterAsJSON = new JSONObject();
     };//end handleSubmit
 
     private void handleWebViewButtonClick() throws InterruptedException {
-
-                goToServer();
-
-
+        Log.i("WIFI",getSavedWifiConfigurations().toString());
+               importSavedConfiguration(getSavedWifiConfigurations());
         }    //end handleButton
 
     private boolean checkForWiFi() {
@@ -237,25 +238,70 @@ private boolean checkIfSSIDAvailable(String ssid) throws InterruptedException {
       }
     };
 
+    private void checkPermissions(){
+
+                        ActivityCompat.requestPermissions(MainActivity.this,
+                                new String[]{
+                                        Manifest.permission.ACCESS_COARSE_LOCATION,
+                                },
+                                1);
+        ActivityCompat.requestPermissions(MainActivity.this,
+                new String[]{
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                },
+                1);
+        ActivityCompat.requestPermissions(MainActivity.this,
+                new String[]{
+                        Manifest.permission.ACCESS_NETWORK_STATE,
+                },
+                1);
+        ActivityCompat.requestPermissions(MainActivity.this,
+                new String[]{
+                        Manifest.permission.CHANGE_NETWORK_STATE,
+                },
+                1);ActivityCompat.requestPermissions(MainActivity.this,
+                new String[]{
+                        Manifest.permission.ACCESS_WIFI_STATE,
+                },
+                1);ActivityCompat.requestPermissions(MainActivity.this,
+                new String[]{
+                        Manifest.permission.CHANGE_WIFI_STATE,
+                },
+                1);
+        }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        parameterAsJSON = new JSONObject();
         setContentView(R.layout.activity_main);
         //UI element assignments
         //TextView Elements
         resultTextView = findViewById(R.id.resultTextView);
         //checkedTextView
         postCheckedTextView = findViewById(R.id.postCheckedTextView);
+        parametersTextView = findViewById(R.id.parametersTextView);
         getCheckBox = findViewById(R.id.getCheckBox);
 
             //user input text boxes
-        usernameTextBox = findViewById(R.id.usernameTextBox);
-        usernameValueTextBox = findViewById(R.id.usernameValueTextbox);
-        passwordTextBox = findViewById(R.id.passwordTextBox);
-        passwordValueTextBox = findViewById(R.id.passwordValueTextbox);
+        keyTextBox = findViewById(R.id.keyTextBox);
+        valueTextBox = findViewById(R.id.valueTextBox);
         urlTextBox  = findViewById(R.id.urlTextBox);
             //buttons
+        addParameterButton = findViewById(R.id.addParameterButton);
+        addParameterButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    addToJSON(keyTextBox.getText().toString(),valueTextBox.getText().toString(),parameterAsJSON);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                resetTextBox(keyTextBox);
+                resetTextBox(valueTextBox);
+
+            }
+        });
         submitButton = findViewById(R.id.submitButton);
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -307,5 +353,6 @@ private boolean checkIfSSIDAvailable(String ssid) throws InterruptedException {
                 }
             }
         });
+checkPermissions();
     }//end onCreate
 }//endClass
