@@ -41,7 +41,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
     //INTENT_EXTRA is for passing URL value to Webview Activity
     public static final String INTENT_EXTRA = "com.example.opalconfig.INTENT_EXTRA";
-
+private String TAG = "CONFIG";
     //constants
     String TEST_SERVER = "http://10.42.0.253/";
     String PLACEHOLDER_SERVER_URL = "https://jsonplaceholder.typicode.com/";
@@ -96,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
         wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         WifiInfo info = wifiManager.getConnectionInfo();
         String ssid = info.getSSID();
-        Log.d("WIFI", "connected to " + ssid);
+        Log.d(TAG, "connected to " + ssid);
         return ssid;
     }
 
@@ -123,9 +123,9 @@ public class MainActivity extends AppCompatActivity {
         }
         List<ScanResult> results = wifiManager.getScanResults();
         for (ScanResult scans : results) {
-            Log.d("WIFI", "Found " + scans.SSID);
+            Log.d(TAG, "Found " + scans.SSID);
             if (scans.SSID.equals(SSID)) {
-                Log.d("WIFI", scans.SSID + " matches");
+                Log.d(TAG, scans.SSID + " matches");
                 return true;
             }
         }
@@ -156,11 +156,11 @@ public class MainActivity extends AppCompatActivity {
     //connects handset to specified wifi
     private void connectToWifi(String networkSSID, String networkPassword, WifiManager wifi) {
         if (!wifi.isWifiEnabled()) {
-            Log.d("WIFI", "wifi not turned on, turning on now");
+            Log.d(TAG, "wifi not turned on, turning on now");
             wifiManager.setWifiEnabled(true);
         }
         wifiManager.enableNetwork(addWifiToSavedWifiConfiguration(networkSSID, networkPassword), true);
-        Log.d("WIFI", "connecting to " + networkSSID);
+        Log.d(TAG, "connecting to " + networkSSID);
 
         //lock connection for non-internet i think?
         wifi.createWifiLock("WifiConnection");
@@ -201,7 +201,7 @@ public class MainActivity extends AppCompatActivity {
     private void resetParameters(JSONObject jsonObject) {
         jsonObject = new JSONObject();
     }
-
+//how sloppy are you tryna be here bruh?
     private void checkPermissions() {
 
         ActivityCompat.requestPermissions(MainActivity.this,
@@ -262,33 +262,54 @@ public class MainActivity extends AppCompatActivity {
         }
         return ret;
     }
-    private void scanForDevice() {
-        textContainer = " ------ ";
 
-        //AsyncTask must not touch UI and should only take a few seconds or so
-        AsyncTask.execute(new Runnable() {
+    private class scanForNetworkDevices extends AsyncTask<String, Integer, Long> {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            connectButton.setText("Scanning");
+            connectButton.setBackgroundColor(Color.BLUE);
+        }
 
-            @Override
-            public void run() {
-                ArrayList<InetAddress> inetAddresses = scanNetworkForIPAddresses("10.42.0.185");
-                for (InetAddress address: inetAddresses) {
-                   textContainer += "/br" + address.getCanonicalHostName();
-                   Log.d("WIFI", textContainer);
-                }
+        protected Long doInBackground(String... addresses) {
+            textContainer = " ------ " + System.lineSeparator();
+            Log.d(TAG, "Scanning for devices....");
+            isScanningNetwork = true;
+            ArrayList<InetAddress> inetAddresses = scanNetworkForIPAddresses("10.42.0.185");
+            for (InetAddress address: inetAddresses) {
+                textContainer += address.getCanonicalHostName() + System.lineSeparator();
+                Log.d(TAG, address.getCanonicalHostName());
+                Log.d(TAG, address.getHostAddress());
             }
+            return null;
+        }
 
-        });
-        isScanningNetwork = false;
 
+        protected void onProgressUpdate(Integer... progress) {
+        }
 
+        protected void onPostExecute(Long result) {
+            isScanningNetwork = false;
+            Log.d(TAG, "Scanning Complete");
+            responseTextView.setText(textContainer);
+            connectButton.setText("Complete");
+            connectButton.setBackgroundColor(Color.GREEN);
+        }
     }
+
+
+    private void scanForDevice() {
+new scanForNetworkDevices().execute();
+        };
+
+
+
+
 
 
 
 
     private void handleSubmitButton() {
-        //order of put doesn't matter
-
         //isEmpty check to prevent sending blank data. Used on key only so reset value is possible
         if(postCheckedTextView.isChecked()){
             boolean sucessfullySent = true;
@@ -304,7 +325,7 @@ public class MainActivity extends AppCompatActivity {
             if ((sucessfullySent)) {
                 resetParameters(parameterAsJSON);
             } else {
-                Log.i("WIFI", "FAILED TO SEND, KEEPING PARAMETERS");
+                Log.i(TAG, "FAILED TO SEND, KEEPING PARAMETERS");
             }
         }
         if(getCheckBox.isChecked()){
@@ -316,20 +337,6 @@ public class MainActivity extends AppCompatActivity {
     private void handleConnectButton()  {
 //check if MatsyaAP is available - if yes ? (connect) : no (findDeviceONNetwork() ? setConnected() : setNotFound())
         scanForDevice();
-        isScanningNetwork = true;
-
-        while(isScanningNetwork){
-            try {
-                connectButton.setText("Scanning");
-                connectButton.setBackgroundColor(Color.BLUE);
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        connectButton.setText("Complete");
-        connectButton.setBackgroundColor(Color.GREEN);
-responseTextView.setText(textContainer);
     }    //end handleConnectButton
 private void handleRebootButtonClick(){
     JSONObject data = new JSONObject();
