@@ -117,7 +117,6 @@ private String TAG = "CONFIG";
         }
         wifiManager.enableNetwork(addWifiToSavedWifiConfiguration(networkSSID, networkPassword), true);
         Log.d(TAG, "connecting to " + networkSSID);
-
         //lock connection for non-internet i think?
         wifi.createWifiLock("WifiConnection");
     }//end connectToWifi
@@ -256,6 +255,9 @@ private String TAG = "CONFIG";
             isScanningNetwork = true;
             IntentFilter intentFilter = new IntentFilter();
             intentFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
+            if(!checkIfWifiIsConnected()){
+                wifiManager.setWifiEnabled(true);
+            }
             wifiManager.startScan();
             List<ScanResult> results = wifiManager.getScanResults();
             for (ScanResult scans : results) {
@@ -265,6 +267,8 @@ private String TAG = "CONFIG";
                     if (scans.SSID.equals(SSID)) {
                         Log.d(TAG, scans.SSID + " matches" + System.lineSeparator());
                         textContainer += scans.SSID + "matches" + System.lineSeparator();
+                        connectToWifi(SSID,PSK, wifiManager);
+                        wifiManager.reconnect();
                     }
                 }
             }
@@ -282,6 +286,9 @@ private String TAG = "CONFIG";
             connectButton.setText("Complete");
             connectButton.setBackgroundColor(Color.GREEN);
             connectButton.setTextColor(Color.BLACK);
+            if(getConnectedSSID().equals("\"" + SSID + "\"")){
+                connectButton.setText("Connected");
+            }
 
         }
     }
@@ -321,7 +328,7 @@ private String TAG = "CONFIG";
 
     private void handleConnectButton()  {
 //check if MatsyaAP is available - if yes ? (connect) : no (findDeviceONNetwork() ? setConnected() : setNotFound())
-        scanForDevice();
+//        scanForDevice();
         scanForNetworks();
     }    //end handleConnectButton
 private void handleRebootButtonClick(){
