@@ -1,7 +1,6 @@
 package com.ryan.opalconfig;
 
 import android.Manifest;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -91,41 +90,9 @@ private String TAG = "CONFIG";
     String textContainer = "";
 
 //------------------------------------functions-----------------------------------//
-
-
-    private String getConnectedSSID() {
-        wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        WifiInfo info = wifiManager.getConnectionInfo();
-        String ssid = info.getSSID();
-        Log.d(TAG, "connected to " + ssid);
-        return ssid;
-    }
-
-    //receiver for the WifiScan
-    private final BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context c, Intent intent) {
-            // This condition is not necessary if you listen to only one action
-            if (intent.getAction().equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)) {
-                isScanning = false;
-            }
-        }
-    };//end goToServer()
-
-
-
-
     private List<WifiConfiguration> getSavedWifiConfigurations() {
         return wifiManager.getConfiguredNetworks();
     }
-
-    private void importSavedConfiguration(List<WifiConfiguration> configToImport) {
-        for (WifiConfiguration wifiConfig : configToImport) {
-
-//         wifiManager.addNetwork(wifiConfig);
-        }
-    }
-
     //only adds network to devices saved network configuration
     private int addWifiToSavedWifiConfiguration(String ssid, String password) {
         WifiConfiguration wifiConfiguration = new WifiConfiguration();
@@ -135,7 +102,13 @@ private String TAG = "CONFIG";
 //----get the network id as int and add to device wifi config
         return wifiManager.addNetwork(wifiConfiguration);
     }
-
+    private String getConnectedSSID() {
+        wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        WifiInfo info = wifiManager.getConnectionInfo();
+        String ssid = info.getSSID();
+        Log.d(TAG, "connected to " + ssid);
+        return ssid;
+    }
     //connects handset to specified wifi
     private void connectToWifi(String networkSSID, String networkPassword, WifiManager wifi) {
         if (!wifi.isWifiEnabled()) {
@@ -159,6 +132,10 @@ private String TAG = "CONFIG";
     private void resetTextBox(EditText textBox) {
         textBox.setText("");
     }
+    private JSONObject resetParameters() {
+        return new JSONObject();
+    }
+
 
     private void addParameterToJSON(String inputKey, String inputValue, JSONObject json) throws JSONException {
         String key = inputKey;
@@ -181,12 +158,8 @@ private String TAG = "CONFIG";
 
     ;
 
-    private JSONObject resetParameters() {
-        return new JSONObject();
-    }
 //how sloppy are you tryna be here bruh?
     private void checkPermissions() {
-
         ActivityCompat.requestPermissions(MainActivity.this,
                 new String[]{
                         Manifest.permission.ACCESS_COARSE_LOCATION,
@@ -197,27 +170,8 @@ private String TAG = "CONFIG";
                         Manifest.permission.ACCESS_FINE_LOCATION,
                 },
                 1);
-        ActivityCompat.requestPermissions(MainActivity.this,
-                new String[]{
-                        Manifest.permission.ACCESS_NETWORK_STATE,
-                },
-                1);
-        ActivityCompat.requestPermissions(MainActivity.this,
-                new String[]{
-                        Manifest.permission.CHANGE_NETWORK_STATE,
-                },
-                1);
-        ActivityCompat.requestPermissions(MainActivity.this,
-                new String[]{
-                        Manifest.permission.ACCESS_WIFI_STATE,
-                },
-                1);
-        ActivityCompat.requestPermissions(MainActivity.this,
-                new String[]{
-                        Manifest.permission.CHANGE_WIFI_STATE,
-                },
-                1);
     }
+
     public ArrayList<InetAddress> scanNetworkForIPAddresses(String deviceIP) {
         ArrayList<InetAddress> ret = new ArrayList<InetAddress>();
         int IPAddress = 0;
@@ -240,7 +194,6 @@ private String TAG = "CONFIG";
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
             IPAddress++;
         }
         return ret;
@@ -267,8 +220,8 @@ private String TAG = "CONFIG";
             return null;
         }
 
-
         protected void onProgressUpdate(Integer... progress) {
+
         }
 
         protected void onPostExecute(Long result) {
@@ -285,7 +238,6 @@ private String TAG = "CONFIG";
 
     private void scanForDevice() {
         new scanForNetworkDevices().execute();
-
     };
 
     private class scanForAvailableNetworks extends AsyncTask<String, Integer, Long> {
@@ -304,7 +256,6 @@ private String TAG = "CONFIG";
             isScanningNetwork = true;
             IntentFilter intentFilter = new IntentFilter();
             intentFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
-            registerReceiver(wifiScanReceiver, intentFilter);
             wifiManager.startScan();
             List<ScanResult> results = wifiManager.getScanResults();
             for (ScanResult scans : results) {
@@ -370,7 +321,7 @@ private String TAG = "CONFIG";
 
     private void handleConnectButton()  {
 //check if MatsyaAP is available - if yes ? (connect) : no (findDeviceONNetwork() ? setConnected() : setNotFound())
-//        scanForDevice();
+        scanForDevice();
         scanForNetworks();
     }    //end handleConnectButton
 private void handleRebootButtonClick(){
