@@ -269,6 +269,7 @@ private String TAG = "CONFIG";
             super.onPreExecute();
             connectButton.setText("Scanning");
             connectButton.setBackgroundColor(Color.BLUE);
+            connectButton.setTextColor(Color.WHITE);
         }
 
         protected Long doInBackground(String... addresses) {
@@ -294,6 +295,8 @@ private String TAG = "CONFIG";
             responseTextView.setText(textContainer);
             connectButton.setText("Complete");
             connectButton.setBackgroundColor(Color.GREEN);
+            connectButton.setTextColor(Color.BLACK);
+
         }
     }
 
