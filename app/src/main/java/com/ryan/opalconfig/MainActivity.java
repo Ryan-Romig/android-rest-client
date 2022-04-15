@@ -14,6 +14,7 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -112,25 +113,7 @@ private String TAG = "CONFIG";
     };//end goToServer()
 
 
-    private boolean scanForSSID(String ssid) throws InterruptedException {
-        isScanning = true;
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
-        registerReceiver(wifiScanReceiver, intentFilter);
-        wifiManager.startScan();
-        while (isScanning) {
-            Thread.sleep(1500);
-        }
-        List<ScanResult> results = wifiManager.getScanResults();
-        for (ScanResult scans : results) {
-            Log.d(TAG, "Found " + scans.SSID);
-            if (scans.SSID.equals(SSID)) {
-                Log.d(TAG, scans.SSID + " matches");
-                return true;
-            }
-        }
-        return false;
-    }
+
 
     private List<WifiConfiguration> getSavedWifiConfigurations() {
         return wifiManager.getConfiguredNetworks();
@@ -299,12 +282,62 @@ private String TAG = "CONFIG";
         }
     }
 
+
     private void scanForDevice() {
-            new scanForNetworkDevices().execute();
-        };
+        new scanForNetworkDevices().execute();
+
+    };
+
+    private class scanForAvailableNetworks extends AsyncTask<String, Integer, Long> {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            connectButton.setText("Scanning");
+            connectButton.setBackgroundColor(Color.BLUE);
+            connectButton.setTextColor(Color.WHITE);
+            responseTextView.setText("Scanning for Networks...");
+        }
+
+        protected Long doInBackground(String... addresses) {
+            textContainer = " ------ Networks Found ------- " + System.lineSeparator();
+            Log.d(TAG, "Scanning for networks....");
+            isScanningNetwork = true;
+            IntentFilter intentFilter = new IntentFilter();
+            intentFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
+            registerReceiver(wifiScanReceiver, intentFilter);
+            wifiManager.startScan();
+            List<ScanResult> results = wifiManager.getScanResults();
+            for (ScanResult scans : results) {
+                if (!scans.SSID.isEmpty()) {
+                    Log.d(TAG, "Found " + scans.SSID + System.lineSeparator());
+                    textContainer += "Found " + scans.SSID + System.lineSeparator();
+                    if (scans.SSID.equals(SSID)) {
+                        Log.d(TAG, scans.SSID + " matches" + System.lineSeparator());
+                        textContainer += scans.SSID + "matches" + System.lineSeparator();
+                    }
+                }
+            }
+            return null;
+        }
 
 
+        protected void onProgressUpdate(Integer... progress) {
+        }
 
+        protected void onPostExecute(Long result) {
+            isScanningNetwork = false;
+            Log.d(TAG, "Scanning Complete");
+            responseTextView.setText(textContainer);
+            connectButton.setText("Complete");
+            connectButton.setBackgroundColor(Color.GREEN);
+            connectButton.setTextColor(Color.BLACK);
+
+        }
+    }
+    private void scanForNetworks() {
+        new scanForAvailableNetworks().execute();
+
+    };
 
 
 
@@ -331,13 +364,14 @@ private String TAG = "CONFIG";
         }
         if(getCheckBox.isChecked()){
                server_url = urlTextBox.getText().toString();
-                am.sendGetRequest(MainActivity.this, server_url + url_extra, responseTextView);
+               am.sendGetRequest(MainActivity.this, server_url + url_extra, responseTextView);
             }
     };//end handleSubmit
 
     private void handleConnectButton()  {
 //check if MatsyaAP is available - if yes ? (connect) : no (findDeviceONNetwork() ? setConnected() : setNotFound())
-        scanForDevice();
+//        scanForDevice();
+        scanForNetworks();
     }    //end handleConnectButton
 private void handleRebootButtonClick(){
     JSONObject data = new JSONObject();
@@ -369,6 +403,7 @@ private void handleAddParameterButtonClick(){
 }
 private void handleResetParameterButtonClick(){
     parameterAsJSON = resetParameters();
+    parametersTextView.setText("");
 
 }
 
@@ -376,13 +411,13 @@ private void handleResetParameterButtonClick(){
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        parameterAsJSON = new JSONObject();
         parameterAsJSON = resetParameters();
 
         setContentView(R.layout.activity_main);
         //UI element assignments
         //TextView Elements
         responseTextView = findViewById(R.id.responseTextView);
+        responseTextView.setMovementMethod(new ScrollingMovementMethod());
         //checkedTextView
         postCheckedTextView = findViewById(R.id.postCheckedTextView);
         parametersTextView = findViewById(R.id.parametersTextView);

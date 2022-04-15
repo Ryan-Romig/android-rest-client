@@ -10,37 +10,33 @@
         android:id="@+id/linearLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginBottom="5dp"
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <LinearLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:layout_height="wrap_content">
 
             <LinearLayout
-                android:layout_width="176dp"
-                android:layout_height="match_parent"
-                android:orientation="horizontal">
-
-                <Space
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1" />
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layoutDirection="locale"
+                android:orientation="horizontal"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
 
                 <CheckBox
                     android:id="@+id/postCheckedTextView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:checked="true"
                     android:text="POST" />
-
-                <Space
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1" />
 
                 <CheckBox
                     android:id="@+id/getCheckBox"
@@ -49,24 +45,20 @@
                     android:text="GET" />
 
                 <Space
-                    android:layout_width="wrap_content"
+                    android:layout_width="25dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="horizontal">
 
                 <Button
                     android:id="@+id/rebootButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Reboot" />
+                    android:text="Reboot"
+                    android:textAlignment="center"
+                    android:textSize="14sp" />
 
                 <Space
-                    android:layout_width="wrap_content"
+                    android:layout_width="16dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1" />
 
@@ -77,13 +69,12 @@
                     android:text="Connect" />
 
                 <Space
-                    android:layout_width="wrap_content"
+                    android:layout_width="21dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1" />
 
             </LinearLayout>
-
-        </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <Space
             android:layout_width="match_parent"
@@ -241,7 +232,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Server Response"
-                android:isScrollContainer="true" />
+                android:scrollbars="vertical" />
 
         </LinearLayout>
 
