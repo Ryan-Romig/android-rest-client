@@ -297,9 +297,8 @@ private String TAG = "CONFIG";
         }
     }
 
-
     private void scanForDevice() {
-new scanForNetworkDevices().execute();
+            new scanForNetworkDevices().execute();
         };
 
 
