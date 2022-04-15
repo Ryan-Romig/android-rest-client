@@ -198,8 +198,8 @@ private String TAG = "CONFIG";
 
     ;
 
-    private void resetParameters(JSONObject jsonObject) {
-        jsonObject = new JSONObject();
+    private JSONObject resetParameters() {
+        return new JSONObject();
     }
 //how sloppy are you tryna be here bruh?
     private void checkPermissions() {
@@ -324,7 +324,7 @@ private String TAG = "CONFIG";
 
             }
             if ((sucessfullySent)) {
-                resetParameters(parameterAsJSON);
+                parameterAsJSON = resetParameters();
             } else {
                 Log.i(TAG, "FAILED TO SEND, KEEPING PARAMETERS");
             }
@@ -368,7 +368,8 @@ private void handleAddParameterButtonClick(){
     resetTextBox(valueTextBox);
 }
 private void handleResetParameterButtonClick(){
-        resetParameters(parameterAsJSON);
+    parameterAsJSON = resetParameters();
+
 }
 
     @Override
@@ -376,7 +377,8 @@ private void handleResetParameterButtonClick(){
         super.onCreate(savedInstanceState);
         wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         parameterAsJSON = new JSONObject();
-        resetParameters(parameterAsJSON);
+        parameterAsJSON = resetParameters();
+
         setContentView(R.layout.activity_main);
         //UI element assignments
         //TextView Elements
