@@ -26,17 +26,32 @@
                 android:layout_height="match_parent"
                 android:orientation="horizontal">
 
+                <Space
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1" />
+
                 <CheckBox
                     android:id="@+id/postCheckedTextView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="POST" />
 
+                <Space
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1" />
+
                 <CheckBox
                     android:id="@+id/getCheckBox"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="GET" />
+
+                <Space
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1" />
             </LinearLayout>
 
             <LinearLayout
@@ -60,6 +75,12 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Connect" />
+
+                <Space
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1" />
+
             </LinearLayout>
 
         </LinearLayout>
@@ -73,32 +94,52 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
+            <Space
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
+
             <EditText
                 android:id="@+id/urlTextBox"
-                android:layout_width="178dp"
+                android:layout_width="180dp"
                 android:layout_height="wrap_content"
+                android:autoText="true"
                 android:ems="10"
+                android:hint="Base http://"
                 android:inputType="textPersonName"
                 android:textAlignment="viewStart" />
 
             <Space
-                android:layout_width="56dp"
+                android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_weight="1" />
 
             <EditText
                 android:id="@+id/urlExtraTextBox"
-                android:layout_width="128dp"
+                android:layout_width="64dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:autoText="true"
                 android:ems="10"
+                android:hint="/extra"
                 android:inputType="textPersonName" />
+
+            <Space
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
 
             <Button
                 android:id="@+id/submitButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Submit" />
+
+            <Space
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
+
         </LinearLayout>
 
         <Space
@@ -110,11 +151,18 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
+            <Space
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
+
             <EditText
                 android:id="@+id/keyTextBox"
                 android:layout_width="128dp"
                 android:layout_height="52dp"
+                android:autoText="true"
                 android:ems="10"
+                android:hint="Key"
                 android:inputType="textPersonName" />
 
             <Space
@@ -126,14 +174,26 @@
                 android:id="@+id/valueTextBox"
                 android:layout_width="142dp"
                 android:layout_height="51dp"
+                android:autoText="false"
                 android:ems="10"
+                android:hint="Value"
                 android:inputType="textPersonName" />
+
+            <Space
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
 
             <Button
                 android:id="@+id/addParameterButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Add" />
+
+            <Space
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
 
         </LinearLayout>
 
@@ -156,12 +216,14 @@
                 android:id="@+id/parametersLabel"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Parameters" />
+                android:text="Parameters"
+                android:textSize="20sp" />
 
             <TextView
                 android:id="@+id/parametersTextView"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:hint="JSON Parameters - dont forget to check POST" />
 
             <Space
                 android:layout_width="match_parent"
@@ -171,12 +233,15 @@
                 android:id="@+id/responseLabel"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Response" />
+                android:text="Response"
+                android:textSize="20sp" />
 
             <TextView
                 android:id="@+id/responseTextView"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:hint="Server Response"
+                android:isScrollContainer="true" />
 
         </LinearLayout>
 

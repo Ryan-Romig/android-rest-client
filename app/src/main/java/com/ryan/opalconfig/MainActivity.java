@@ -270,18 +270,17 @@ private String TAG = "CONFIG";
             connectButton.setText("Scanning");
             connectButton.setBackgroundColor(Color.BLUE);
             connectButton.setTextColor(Color.WHITE);
+            responseTextView.setText("Scanning the Network for Devices...");
         }
 
         protected Long doInBackground(String... addresses) {
-            textContainer = " ------ " + System.lineSeparator();
+            textContainer = " ------ Devices Found On Network ------- " + System.lineSeparator();
             Log.d(TAG, "Scanning for devices....");
             isScanningNetwork = true;
             ArrayList<InetAddress> inetAddresses = scanNetworkForIPAddresses("10.42.0.185");
             for (InetAddress address: inetAddresses) {
                 textContainer += address.getCanonicalHostName() + System.lineSeparator();
-                Log.d(TAG, address.getCanonicalHostName());
-                Log.d(TAG, address.getHostAddress());
-            }
+                Log.d(TAG, address.getHostAddress());            }
             return null;
         }
 
