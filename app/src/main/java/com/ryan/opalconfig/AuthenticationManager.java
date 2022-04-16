@@ -18,9 +18,14 @@ import org.json.JSONObject;
 
 public class AuthenticationManager {
 
-
+    public String serverResponse;
+    public boolean complete = false;
     String TAG = "Authentication Manager";
+
+
     public void sendGetRequest(Context context, String url, TextView textView){
+        Log.d(TAG, url);
+        complete = false;
         RequestQueue queue = Volley.newRequestQueue(context);
         StringRequest stringRequest = new StringRequest(
                 Request.Method.GET,
@@ -29,8 +34,9 @@ public class AuthenticationManager {
                     @Override
                     public void onResponse(String response) {
                         Log.i(TAG + "GET RESPONSE", response);
-
+                        serverResponse = response;
                         textView.setText(response);
+                        complete = true;
 
                     }
                 }, new Response.ErrorListener() {
@@ -38,11 +44,13 @@ public class AuthenticationManager {
             public void onErrorResponse(VolleyError error) {
                 Log.e(TAG + " GET ERROR", error.toString());
                 textView.setText(error.toString());
+                complete = true;
 
             }
         });
        //.add() sends the request
         queue.add(stringRequest);
+//
     }//end sendGetRequest
 
 
@@ -87,6 +95,8 @@ public class AuthenticationManager {
 
 
     AuthenticationManager (){
+         serverResponse = "";
+
     }//end constructor
 
 }//end class

@@ -29,6 +29,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +46,9 @@ private String TAG = "CONFIG";
     //constants
     String TEST_SERVER = "http://10.42.0.253/";
     String PLACEHOLDER_SERVER_URL = "https://jsonplaceholder.typicode.com/";
-    String OPAL_SERVER_URL = "http://192.168.4.1/";
+    String OPAL_SERVER_URL = "https://192.168.4.1/";
+    String OTA_BIN_URL = "https://github.com/MatsyaTech/OTARelease/releases/download/2.0.2/ota.bin";
+    String OTA_SHA_URL = "https://github.com/MatsyaTech/OTARelease/releases/latest/download/ota_checksum.txt";
     String server_url = "";
     String url_extra = "";
 
@@ -73,7 +76,7 @@ private String TAG = "CONFIG";
     TextView responseTextView;
 
     //checked text views
-    CheckBox postCheckedTextView;
+    CheckBox postCheckBox;
     CheckBox getCheckBox;
     //--input text boxes
     EditText keyTextBox;
@@ -145,6 +148,9 @@ private String TAG = "CONFIG";
         parametersTextView.setText(json.toString());
     }
 
+    private void triggerUpdate(){
+       new getLatestSHA().execute();
+    }
     private boolean checkIfWifiIsConnected() {
         ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
@@ -297,17 +303,54 @@ private String TAG = "CONFIG";
 
     };
 
+    private class getLatestSHA extends AsyncTask<String, Integer, Long> {
+        JSONObject json = new JSONObject();
 
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
 
+        protected Long doInBackground(String... addresses) {
+            am.sendGetRequest(MainActivity.this,OTA_SHA_URL,responseTextView);
+            return null;
+        }
 
+        protected void onProgressUpdate(Integer... progress) {
+        }
+
+        protected void onPostExecute(Long result) {
+            try {
+                json.put("url", OTA_BIN_URL);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                json.put("sha256", am.serverResponse);
+                Log.i(TAG, am.serverResponse);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            server_url = urlTextBox.getText().toString();
+            url_extra= urlExtraTextBox.getText().toString();
+            try {
+                am.sendPostRequest(MainActivity.this, server_url + "ota", json,responseTextView);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+        }
+    }
 
     private void handleSubmitButton() {
         //isEmpty check to prevent sending blank data. Used on key only so reset value is possible
-        if(postCheckedTextView.isChecked()){
+        server_url = urlTextBox.getText().toString();
+        url_extra = urlExtraTextBox.getText().toString();
+        if(postCheckBox.isChecked()){
             boolean sucessfullySent = true;
+
             try {
-                server_url = urlTextBox.getText().toString();
-                url_extra = urlExtraTextBox.getText().toString();
+
                 am.sendPostRequest(MainActivity.this, server_url + url_extra,parameterAsJSON, responseTextView);
             }catch (JSONException e) {
                 e.printStackTrace();
@@ -321,15 +364,28 @@ private String TAG = "CONFIG";
             }
         }
         if(getCheckBox.isChecked()){
-               server_url = urlTextBox.getText().toString();
+
                am.sendGetRequest(MainActivity.this, server_url + url_extra, responseTextView);
             }
     };//end handleSubmit
 
     private void handleConnectButton()  {
 //check if MatsyaAP is available - if yes ? (connect) : no (findDeviceONNetwork() ? setConnected() : setNotFound())
-//        scanForDevice();
-        scanForNetworks();
+        server_url = urlTextBox.getText().toString();
+        url_extra= urlExtraTextBox.getText().toString();
+        if(getCheckBox.isChecked() && postCheckBox.isChecked()){
+            triggerUpdate();
+        }
+        else if(getCheckBox.isChecked()){
+            scanForDevice();
+
+        }
+        else if(postCheckBox.isChecked()){
+            scanForNetworks();
+        }
+        else{
+            responseTextView.setText("Select:" + System.lineSeparator() + "get = scanIP" + System.lineSeparator() +"post = scanSSID" + System.lineSeparator() + "both = OTA UPDATE");
+        }
     }    //end handleConnectButton
 private void handleRebootButtonClick(){
     JSONObject data = new JSONObject();
@@ -377,7 +433,7 @@ private void handleResetParameterButtonClick(){
         responseTextView = findViewById(R.id.responseTextView);
         responseTextView.setMovementMethod(new ScrollingMovementMethod());
         //checkedTextView
-        postCheckedTextView = findViewById(R.id.postCheckedTextView);
+        postCheckBox = findViewById(R.id.postCheckBox);
         parametersTextView = findViewById(R.id.parametersTextView);
         getCheckBox = findViewById(R.id.getCheckBox);
 
