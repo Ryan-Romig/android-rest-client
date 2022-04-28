@@ -25,3 +25,12 @@ to add --
 
 use FING ios/android app to get IP address of devices on network 
 [Android](https://play.google.com/store/apps/details?id=com.overlook.android.fing) [iOS](https://apps.apple.com/us/app/fing-network-scanner/id430921107)
+
+
+
+scan wifi network in AP mode only
+GET to /wifi/wifi_scan
+GET to /wifi/status 
+this should return array of networks found 
+
+will only return status:connected and IP address when connected to wifi
